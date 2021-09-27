@@ -28,6 +28,9 @@ public class Members {
     @ApiModelProperty("头像")
     private String avatar;
 
+    @ApiModelProperty("电话号")
+    private String mobile;
+
     @ApiModelProperty("姓名")
     private String name;
 

@@ -5,9 +5,11 @@ import cn.xts.demo.entity.vo.R;
 import cn.xts.demo.mapper.MemberMapper;
 import cn.xts.demo.service.MembersService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,7 +55,6 @@ public class MembersServiceImpl implements MembersService {
     public R distribution(Integer id) {
 
         Members members1 = mapper.selectById(id);           //本人
-        System.out.println(members1.toString());
 
         if (members1.getReferer_3() != null) {
             int pid1 = members1.getReferer_3();                 //上级推荐人
@@ -82,5 +83,81 @@ public class MembersServiceImpl implements MembersService {
             return R.ok("一级查无此人");
         }
 
+    }
+
+    @Override
+    public R<Members> findById(Integer id) {
+        return R.ok("查询成功").putData(mapper.selectById(id));
+    }
+
+    @Override
+    public R<Members> forwarding(String mobile, Integer point,String type,Integer id) {
+        QueryWrapper<Members> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().eq(Members::getMobile,mobile);
+        Members members = mapper.selectOne(queryWrapper);                   //积分接收者
+
+        Members members2 = mapper.selectById(id);                   //积分发送者
+
+        if (type.equals("消费积分")){
+            int consume_point =  members.getConsume_point();
+            int consume_point2 = members2.getConsume_point();
+            consume_point2 = consume_point2 - point;
+            consume_point = consume_point + point;
+            members.setConsume_point(consume_point);
+            members2.setConsume_point(consume_point2);
+            mapper.updateById(members);
+            mapper.updateById(members2);
+            return R.ok("积分转赠成功");
+        }else if (type.equals("提现积分")){
+            int out_point =  members.getOut_point();
+            int out_point2 = members2.getOut_point();
+            out_point2 = out_point2 - point;
+            out_point = out_point + point;
+            members.setOut_point(out_point);
+            members2.setOut_point(out_point2);
+            mapper.updateById(members);
+            mapper.updateById(members2);
+            return R.ok("积分转赠成功");
+        }
+
+
+        return R.ok("积分转赠失败");
+    }
+
+    @Override
+    public R<List<Members>> findMyTeam(Integer id) {
+        List<Members> membersList = new ArrayList<>(); //总
+        List<Members> membersList1 = new ArrayList<>();  //一级
+        List<Members> membersList2 = new ArrayList<>();  //二级
+        Members members1 = mapper.selectById(id);           //本人
+        Members members2 = mapper.selectById(members1.getReferer_3());
+        membersList.add(members1);                          //列表中添加本人
+        membersList.add(members2);                          //列表中添加本人
+
+
+        //查询二级的人
+        QueryWrapper<Members> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.lambda().eq(Members::getReferer_3,id).isNotNull(Members::getReferer_3);
+        membersList1 = mapper.selectList(queryWrapper1);
+
+
+        for (Members members : membersList1) {
+            QueryWrapper<Members> queryWrapper2 = new QueryWrapper<>();
+            queryWrapper2.lambda().eq(Members::getReferer_3,members.getId()).isNotNull(Members::getReferer_3);
+            membersList2.addAll(mapper.selectList(queryWrapper2));
+        }
+
+        membersList.addAll(membersList1);
+        membersList.addAll(membersList2);
+
+
+        return R.ok("查询成功").putData(membersList);
+    }
+
+    @Override
+    public void resetIntegral() {
+        UpdateWrapper<Members> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().isNotNull(Members::getId).set(Members::getLimit_point, 500);
+        mapper.update(null, updateWrapper);
     }
 }

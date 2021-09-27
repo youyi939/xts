@@ -37,4 +37,30 @@ public class MembersController {
         return service.distribution(id);
     }
 
+
+    @ApiOperation(value = "查询个人信息")
+    @GetMapping(value = "/members/findById")
+    public R<Members> findById(@RequestParam("id") Integer id){
+        return service.findById(id);
+    }
+
+
+    @ApiOperation(value = "积分转赠")
+    @PostMapping(value = "/members/pointForwarding")
+    public R<Members> pointForwarding(
+            @RequestParam("id") Integer id,
+            @RequestParam("point") Integer point,
+            @RequestParam("mobile") String mobile,
+            @RequestParam("type") String type){
+        return service.forwarding(mobile,point,type,id);
+    }
+
+
+    @ApiOperation(value = "查询二级分销相关人员")
+    @GetMapping(value = "/members/findMyTeam")
+    public R<List<Members>> findMyTeam(@RequestParam("id") Integer id){
+        return service.findMyTeam(id);
+    }
+
+
 }

@@ -25,10 +25,41 @@ public interface MembersService {
     /**
      * 二级分销接口,我邀请一个人，这个人变身成为人民币战士了，我就会得到500积分，
      * 如果这个人，再次邀请了一个人，并且这个人也升级成了人民币战士，我就会得到200积分，我邀请的那个人会得到500。
-     * @param id
+     * @param id 用户id
      * @return
      */
     R distribution( Integer id);
 
+
+    /**
+     * 根据id查询用户信息
+     * @param id 用户id
+     * @return
+     */
+    R<Members> findById(Integer id);
+
+
+    /**
+     * 积分转赠
+     * @param mobile 电话号
+     * @param point 积分
+     * @param type 积分类型：/提现积分和消费积分
+     * @return
+     */
+    R<Members> forwarding(String mobile,Integer point,String type,Integer id);
+
+
+    /**
+     * android查询我的团队接口，查询出二级分销相关的团队人员名单，给前端返回list，安卓端渲染listView
+     * @param id 登陆人id
+     * @return 用户的list
+     */
+    R<List<Members>> findMyTeam(Integer id);
+
+
+    /**
+     * 重置每天做任务的积分上限
+     */
+    void resetIntegral();
 
 }
